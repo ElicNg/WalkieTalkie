@@ -1,17 +1,22 @@
 package com.elicng.walkietalkie;
 
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.media.audiofx.Visualizer;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+
+import com.elicng.walkietalkie.activities.AudioRecorderBufferActivity;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +35,6 @@ public class MainActivity extends ActionBarActivity {
 
         filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/latestFile.3gp";
 
-
         Button btnRecord = (Button) findViewById(R.id.btnRecord);
         btnRecord.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -43,11 +47,31 @@ public class MainActivity extends ActionBarActivity {
                                 file.delete();
                             }
 
+                            Visualizer visualizer = new Visualizer(0);
+                            visualizer.setDataCaptureListener(new Visualizer.OnDataCaptureListener() {
+                                @Override
+                                public void onWaveFormDataCapture(Visualizer visualizer, byte[] waveform, int samplingRate) {
+
+                                }
+
+                                @Override
+                                public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
+
+                                }
+                            }, Visualizer.getMaxCaptureRate() / 2, false, false);
+
                             mediaRecorder = new MediaRecorder();
                             mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
                             mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
                             mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
                             mediaRecorder.setOutputFile(filePath);
+                            mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+                                @Override
+                                public void onInfo(MediaRecorder mr, int what, int extra) {
+                                    // On error
+                                    log("what:" + what + "|extra:" + extra);
+                                }
+                            });
                             try {
                                 mediaRecorder.prepare();
                             } catch (IOException e) {
@@ -77,7 +101,6 @@ public class MainActivity extends ActionBarActivity {
         });
 
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -112,5 +135,14 @@ public class MainActivity extends ActionBarActivity {
         }
         mediaPlayer.start();
 
+    }
+
+    public void btnOpenAudioRecorderBufferActivity_onClick(View view) {
+        Intent intent = new Intent(getApplicationContext(), AudioRecorderBufferActivity.class);
+        startActivity(intent);
+    }
+
+    private void log(String message) {
+        Log.d("com.elicng.walkietalkie", message);
     }
 }

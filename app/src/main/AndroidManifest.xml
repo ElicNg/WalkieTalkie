@@ -19,6 +19,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".activities.AudioRecorderBufferActivity"
+            android:label="@string/title_activity_audio_recorder_buffer"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.elicng.walkietalkie.MainActivity" />
+        </activity>
     </application>
 
 </manifest>
