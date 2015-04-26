@@ -1,6 +1,11 @@
 package com.elicng.walkietalkie.activities;
 
-import android.media.MediaRecorder;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
+import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,10 +16,19 @@ import android.widget.ProgressBar;
 
 import com.elicng.walkietalkie.R;
 import com.elicng.walkietalkie.audio.AudioRecorderHandler;
+
 import com.elicng.walkietalkie.audio.AudioRecorderRunnable;
 
-public class AudioRecorderBufferActivity extends ActionBarActivity {
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
+/**
+ * ProgressBar details: http://developer.samsung.com/technical-doc/view.do?v=T000000086
+ */
+
+public class AudioRecorderBufferActivity extends ActionBarActivity {
 
     private AudioRecorderRunnable audioRecorder;
 
@@ -22,6 +36,7 @@ public class AudioRecorderBufferActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_recorder_buffer);
+
     }
 
     @Override
@@ -49,6 +64,8 @@ public class AudioRecorderBufferActivity extends ActionBarActivity {
 
     public void btnStartRecording_onClick(View view) {
         final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
+
+
         if (audioRecorder == null) {
             audioRecorder = new AudioRecorderRunnable(new AudioRecorderHandler() {
                 @Override
@@ -59,7 +76,7 @@ public class AudioRecorderBufferActivity extends ActionBarActivity {
                     }
                     final int amplitude = (int) Math.sqrt(sum / buffer.length);
                     progressBar.setProgress(amplitude);
-                    log("Amplitude" + amplitude);
+                    log("Amplitude: " + amplitude);
 
                 }
             });
@@ -72,8 +89,11 @@ public class AudioRecorderBufferActivity extends ActionBarActivity {
         if (audioRecorder != null) {
             audioRecorder.stopRecording();
             audioRecorder = null;
+
         }
+
     }
+
     private void log(String message) {
         Log.d("com.elicng.walkietalkie", message);
     }

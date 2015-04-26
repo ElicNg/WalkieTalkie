@@ -1,7 +1,9 @@
 package com.elicng.walkietalkie.audio;
 
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioRecord;
+import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.util.Log;
 
@@ -30,6 +32,14 @@ public class AudioRecorderRunnable implements Runnable {
 
     @Override
     public void run() {
+        AudioTrack audioTrack =
+                new AudioTrack(
+                        AudioManager.STREAM_MUSIC,
+                        SAMPLING_RATE,
+                        AudioFormat.CHANNEL_OUT_MONO,
+                        AudioFormat.ENCODING_PCM_16BIT,
+                        bufferSize,
+                        AudioTrack.MODE_STREAM);
 
         audioRecord =
                 new AudioRecord(
@@ -43,7 +53,9 @@ public class AudioRecorderRunnable implements Runnable {
 
         audioRecord.startRecording();
 
+        audioTrack.play();
         int audioRead;
+
         while (isRecording) {
             audioRead = audioRecord.read(audioBuffer, 0, bufferSize);
 
@@ -56,12 +68,16 @@ public class AudioRecorderRunnable implements Runnable {
                 continue;
             }
 
+            audioTrack.write(audioBuffer, 0, audioBuffer.length);
             if (handler != null) {
                 handler.onRecording(audioBuffer);
             }
 
         }
+
+        audioTrack.stop();
         audioRecord.stop();
+        audioRecord = null;
     }
 
     public synchronized void stopRecording() {
