@@ -6,7 +6,9 @@ import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.media.audiofx.Visualizer;
 import android.net.Uri;
+import android.net.nsd.NsdManager;
 import android.os.Environment;
+import android.speech.tts.TextToSpeech;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,6 +19,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.elicng.walkietalkie.activities.AudioRecorderBufferActivity;
+import com.elicng.walkietalkie.net.NsdHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +29,7 @@ public class MainActivity extends ActionBarActivity {
 
     private MediaRecorder mediaRecorder;
     private String filePath;
+    private TextToSpeech tts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +104,7 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
+
     }
 
     @Override
@@ -145,4 +150,6 @@ public class MainActivity extends ActionBarActivity {
     private void log(String message) {
         Log.d("com.elicng.walkietalkie", message);
     }
+
+
 }

@@ -1,63 +1,56 @@
-package com.elicng.walkietalkie.audio;
+package com.elicng.walkietalkie.audios;
 
 import android.media.AudioFormat;
-import android.media.AudioManager;
 import android.media.AudioRecord;
-import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.util.Log;
+
+import com.elicng.walkietalkie.Properties;
 
 /**
  * Created by Elic on 15-04-25.
  */
 public class AudioRecorderRunnable implements Runnable {
 
-    private final int SAMPLING_RATE = 44100;
-
     private AudioRecord audioRecord;
     private boolean isRecording = true;
     private byte[] audioBuffer;
-    private final int bufferSize;
     private AudioRecorderHandler handler;
 
     public AudioRecorderRunnable(AudioRecorderHandler handler) {
         this.handler = handler;
-        bufferSize = AudioRecord.getMinBufferSize(SAMPLING_RATE,
-                AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_16BIT);
-
-        audioBuffer = new byte[bufferSize];
+        audioBuffer = new byte[Properties.BUFFER_SIZE];
 
     }
 
     @Override
     public void run() {
-        AudioTrack audioTrack =
+/*        AudioTrack audioTrack =
                 new AudioTrack(
                         AudioManager.STREAM_MUSIC,
-                        SAMPLING_RATE,
+                        Properties.SAMPLING_RATE,
                         AudioFormat.CHANNEL_OUT_MONO,
                         AudioFormat.ENCODING_PCM_16BIT,
-                        bufferSize,
-                        AudioTrack.MODE_STREAM);
+                        Properties.BUFFER_SIZE,
+                        AudioTrack.MODE_STREAM);*/
 
         audioRecord =
                 new AudioRecord(
                         MediaRecorder.AudioSource.VOICE_COMMUNICATION,
-                        SAMPLING_RATE,
+                        Properties.SAMPLING_RATE,
                         AudioFormat.CHANNEL_IN_MONO,
                         AudioFormat.ENCODING_PCM_16BIT,
-                        bufferSize
+                        Properties.BUFFER_SIZE
                 );
 
 
         audioRecord.startRecording();
 
-        audioTrack.play();
+        // audioTrack.play();
         int audioRead;
 
         while (isRecording) {
-            audioRead = audioRecord.read(audioBuffer, 0, bufferSize);
+            audioRead = audioRecord.read(audioBuffer, 0, Properties.BUFFER_SIZE);
 
             if ((audioRead == AudioRecord.ERROR) ||
                 (audioRead == AudioRecord.ERROR_BAD_VALUE) ||
@@ -68,14 +61,14 @@ public class AudioRecorderRunnable implements Runnable {
                 continue;
             }
 
-            audioTrack.write(audioBuffer, 0, audioBuffer.length);
+            //audioTrack.write(audioBuffer, 0, audioBuffer.length);
             if (handler != null) {
                 handler.onRecording(audioBuffer);
             }
 
         }
 
-        audioTrack.stop();
+        // audioTrack.stop();
         audioRecord.stop();
         audioRecord = null;
     }

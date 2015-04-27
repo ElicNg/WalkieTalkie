@@ -1,13 +1,8 @@
 package com.elicng.walkietalkie.activities;
 
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioTrack;
-import android.media.MediaPlayer;
-import android.net.Uri;
-import android.os.Environment;
-import android.support.v7.app.ActionBarActivity;
+import android.net.nsd.NsdManager;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,14 +10,14 @@ import android.view.View;
 import android.widget.ProgressBar;
 
 import com.elicng.walkietalkie.R;
-import com.elicng.walkietalkie.audio.AudioRecorderHandler;
+import com.elicng.walkietalkie.audios.AudioRecorderHandler;
+import com.elicng.walkietalkie.audios.AudioRecorderRunnable;
+import com.elicng.walkietalkie.net.Client;
+import com.elicng.walkietalkie.net.NsdHelper;
+import com.elicng.walkietalkie.net.Server;
 
-import com.elicng.walkietalkie.audio.AudioRecorderRunnable;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * ProgressBar details: http://developer.samsung.com/technical-doc/view.do?v=T000000086
@@ -31,12 +26,42 @@ import java.io.IOException;
 public class AudioRecorderBufferActivity extends ActionBarActivity {
 
     private AudioRecorderRunnable audioRecorder;
+    private Collection<Client> clients = new ArrayList<>();
+    private Server server;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_recorder_buffer);
 
+        server = new Server();
+        server.start();
+        /*server.start(new Server.ClientConnectListener() {
+            @Override
+            public void onConnect(InputStream stream) {
+                AudioTrack audioTrack =
+                        new AudioTrack(
+                                AudioManager.STREAM_MUSIC,
+                                Properties.SAMPLING_RATE,
+                                AudioFormat.CHANNEL_OUT_MONO,
+                                AudioFormat.ENCODING_PCM_16BIT,
+                                Properties.BUFFER_SIZE,
+                                AudioTrack.MODE_STREAM);
+
+                audioTrack.play();
+                audioTrack.write(stream);
+            }
+        });*/
+        NsdHelper nsdHelper = new NsdHelper((NsdManager) getSystemService(NSD_SERVICE));
+        nsdHelper.initDiscovery(new NsdHelper.ServerFoundListener() {
+            @Override
+            public void onServerFound(String ipAddress, int port) {
+                Client client = new Client();
+                client.Listen(ipAddress, port);
+                clients.add(client);
+            }
+        });
+        nsdHelper.registerService(server.getPort());
     }
 
     @Override
@@ -65,7 +90,6 @@ public class AudioRecorderBufferActivity extends ActionBarActivity {
     public void btnStartRecording_onClick(View view) {
         final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-
         if (audioRecorder == null) {
             audioRecorder = new AudioRecorderRunnable(new AudioRecorderHandler() {
                 @Override
@@ -77,7 +101,7 @@ public class AudioRecorderBufferActivity extends ActionBarActivity {
                     final int amplitude = (int) Math.sqrt(sum / buffer.length);
                     progressBar.setProgress(amplitude);
                     log("Amplitude: " + amplitude);
-
+                    server.writeByte(buffer);
                 }
             });
             new Thread(audioRecorder).start();
