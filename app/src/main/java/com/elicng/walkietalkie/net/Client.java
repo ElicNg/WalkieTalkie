@@ -17,12 +17,16 @@ import java.net.Socket;
 public class Client {
 
     private boolean listening = true;
+    private String hostName;
+    private int portNumber;
 
     public Client() {
 
     }
 
     public void listen(final String hostName, final int portNumber) {
+        this.hostName = hostName;
+        this.portNumber = portNumber;
         Thread listeningThread = new Thread(new Runnable(){
             @Override
             public void run() {
@@ -46,9 +50,12 @@ public class Client {
 
                     while (listening) {
                         read = inputStream.read(audioBuffer);
-
-                        // Write audio buffer to the AudioTrack.
-                        audioTrack.write(audioBuffer, 0, audioBuffer.length);
+                        if (read != -1) {
+                            // Write audio buffer to the AudioTrack.
+                            audioTrack.write(audioBuffer, 0, audioBuffer.length);
+                        } else {
+                            listening = false;
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -61,5 +68,13 @@ public class Client {
 
     public void StopListening() {
         listening = false;
+    }
+
+    public int getPort() {
+        return portNumber;
+    }
+
+    public String getAddress() {
+        return hostName;
     }
 }

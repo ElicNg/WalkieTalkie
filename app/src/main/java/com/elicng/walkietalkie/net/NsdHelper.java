@@ -12,20 +12,42 @@ public class NsdHelper {
     private NsdManager nsdManager;
     private final String SERVICE_TYPE = "_http._tcp.";
     private ServerFoundListener serverFoundListener;
+    private String serviceName;
 
     public NsdHelper(NsdManager nsdManager) {
         this.nsdManager = nsdManager;
     }
 
-    private final static String SERVICE_NAME = "com.elicng.walkietalkie";
+    private final static String SERVICE_NAME = "WALKIETALKIE";
 
     public void registerService(int port) {
         NsdServiceInfo nsdServiceInfo = new NsdServiceInfo();
         nsdServiceInfo.setServiceName(SERVICE_NAME);
-        nsdServiceInfo.setPort(port);
         nsdServiceInfo.setServiceType(SERVICE_TYPE);
+        nsdServiceInfo.setPort(port);
 
-        nsdManager.registerService(nsdServiceInfo, NsdManager.PROTOCOL_DNS_SD, new RegistrationListener());
+        nsdManager.registerService(nsdServiceInfo, NsdManager.PROTOCOL_DNS_SD, new NsdManager.RegistrationListener() {
+            @Override
+            public void onRegistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
+                log("onRegistrationFailed");
+            }
+
+            @Override
+            public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
+                log("onUnregistrationFailed");
+            }
+
+            @Override
+            public void onServiceRegistered(NsdServiceInfo serviceInfo) {
+                log("onServiceRegistered " + serviceInfo.getServiceName());
+                serviceName = serviceInfo.getServiceName();
+            }
+
+            @Override
+            public void onServiceUnregistered(NsdServiceInfo serviceInfo) {
+                log("onServiceUnregistered");
+            }
+        });
     }
 
     public void initDiscovery(ServerFoundListener serverFoundListener) {
@@ -37,27 +59,6 @@ public class NsdHelper {
         Log.d("com.elicng.walkietalkie", message);
     }
 
-    class RegistrationListener implements NsdManager.RegistrationListener {
-        @Override
-        public void onRegistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
-            log("onRegistrationFailed");
-        }
-
-        @Override
-        public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
-            log("onUnregistrationFailed");
-        }
-
-        @Override
-        public void onServiceRegistered(NsdServiceInfo serviceInfo) {
-            log("onServiceRegistered");
-        }
-
-        @Override
-        public void onServiceUnregistered(NsdServiceInfo serviceInfo) {
-            log("onServiceUnregistered");
-        }
-    }
 
     class DiscoveryListener implements NsdManager.DiscoveryListener {
         @Override
@@ -85,7 +86,7 @@ public class NsdHelper {
             log("onServiceFound");
             if (!serviceInfo.getServiceType().equals(SERVICE_TYPE)) {
                 log("Unknown service type");
-            } else if (serviceInfo.getServiceName().equals(SERVICE_NAME)) {
+            } else if (serviceName != null && serviceInfo.getServiceName().equals(serviceName)) {
                 log("Discovered ourself! Skip.");
             } else if (serviceInfo.getServiceName().contains(SERVICE_NAME)) {
                 // Found a service! Try to resolve the ip and port!

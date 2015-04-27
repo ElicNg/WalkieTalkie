@@ -6,38 +6,56 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="com.elicng.walkietalkie.activities.WalkieTalkieActivity">
 
-    <TextView android:text="Audio buffering" android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start Recording"
-        android:id="@+id/btnStartRecording"
-        android:layout_below="@+id/textView"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="186dp"
-        android:onClick="btnStartRecording_onClick" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Stop Recording"
-        android:id="@+id/btnStopRecording"
-        android:layout_marginTop="95dp"
-        android:layout_below="@+id/btnStartRecording"
-        android:layout_centerHorizontal="true"
-        android:onClick="btnStopRecording_onClick" />
-
     <ProgressBar
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:max="100"
         style="?android:attr/progressBarStyleHorizontal"
         android:id="@+id/progressBar"
-        android:layout_margin="10dp"
         android:progressDrawable="@drawable/audiovolumebar"
-         />
+        android:layout_above="@+id/btnMicrophone"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="40dp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageView"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="86dp"
+        android:layout_centerHorizontal="true" />
+
+    <IconTextView
+        android:text="{fa-microphone}"
+        android:shadowColor="#22000000"
+        android:textSize="150dp"
+        android:textColor="#FF33B5E5"
+        android:gravity="center"
+        android:includeFontPadding="false"
+
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/btnMicrophone" />
+    <ScrollView android:id="@+id/textAreaScroller"
+        android:layout_width="fill_parent"
+        android:layout_height="173px"
+        android:layout_x="0px"
+        android:layout_y="25px"
+        android:scrollbars="vertical"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NUMBER OF CONNECTIONS"
+            android:id="@+id/txtStatus"
+            android:layout_alignParentBottom="true"
+            android:editable="false" />
+    </ScrollView>
+
 
 </RelativeLayout>

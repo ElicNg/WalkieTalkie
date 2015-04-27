@@ -6,16 +6,18 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.elicng.walkietalkie.R;
 import com.elicng.walkietalkie.audios.AudioRecorderRunnable;
 import com.elicng.walkietalkie.net.Client;
 import com.elicng.walkietalkie.net.NsdHelper;
 import com.elicng.walkietalkie.net.Server;
+import com.elicng.walkietalkie.utils.ListenableArrayList;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -25,7 +27,7 @@ import java.util.Collection;
 public class WalkieTalkieActivity extends ActionBarActivity implements AudioRecorderRunnable.AudioRecorderHandler {
 
     private AudioRecorderRunnable audioRecorder;
-    private Collection<Client> clients = new ArrayList<>();
+    private Collection<Client> clients;
     private ProgressBar audioAmplitude;
     private Server server;
 
@@ -35,11 +37,36 @@ public class WalkieTalkieActivity extends ActionBarActivity implements AudioReco
         setContentView(R.layout.activity_audio_recorder_buffer);
         audioAmplitude = (ProgressBar) findViewById(R.id.progressBar);
 
+        ListenableArrayList<Client> clientArrayList = new ListenableArrayList();
+        clients = clientArrayList;
+        final TextView txtStatus = (TextView) findViewById(R.id.txtStatus);
+        clientArrayList.setChangeListener(new ListenableArrayList.ChangeListener() {
+            @Override
+            public void onChange() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        String connectedDevices = "Number of connected clients : " + clients.size();
+                        for (Client c : clients) {
+                            connectedDevices += "\n" + c.getAddress() + ":" + c.getPort();
+                        }
+
+                        txtStatus.setText(connectedDevices);
+                    }
+                });
+
+            }
+        });
+
         // Create a server instance to listen to connecting clients
         server = new Server();
         server.start();
 
         NsdHelper nsdHelper = new NsdHelper((NsdManager) getSystemService(NSD_SERVICE));
+
+        nsdHelper.registerService(server.getPort());
+
         nsdHelper.initDiscovery(new NsdHelper.ServerFoundListener() {
             @Override
             public void onServerFound(String ipAddress, int port) {
@@ -48,7 +75,42 @@ public class WalkieTalkieActivity extends ActionBarActivity implements AudioReco
                 clients.add(client);
             }
         });
-        nsdHelper.registerService(server.getPort());
+
+        View btnMicrophone = findViewById(R.id.btnMicrophone);
+        final AudioRecorderRunnable.AudioRecorderHandler audioRecorderHandler = this;
+
+        btnMicrophone.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                TextView textView = (TextView) v;
+                switch (event.getAction()) {
+
+                    case MotionEvent.ACTION_DOWN: {
+                        if (audioRecorder == null) {
+                            audioRecorder = new AudioRecorderRunnable(audioRecorderHandler);
+                            new Thread(audioRecorder).start();
+                        }
+                        textView.setTextColor(0x00FF00FF);
+                        return true;
+                    }
+                    case MotionEvent.ACTION_HOVER_EXIT:
+                    case MotionEvent.ACTION_UP: {
+                        if (audioRecorder != null) {
+                            audioRecorder.stopRecording();
+                            audioRecorder = null;
+                        }
+                        textView.setTextColor(0xFF33B5E5);
+
+                        audioAmplitude.setProgress(0);
+                        return true;
+                    }
+
+                }
+
+                return false;
+            }
+        });
+
     }
 
     @Override
@@ -71,26 +133,6 @@ public class WalkieTalkieActivity extends ActionBarActivity implements AudioReco
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-
-    public void btnStartRecording_onClick(View view) {
-
-        if (audioRecorder == null) {
-            audioRecorder = new AudioRecorderRunnable(this);
-            new Thread(audioRecorder).start();
-        }
-
-    }
-
-    public void btnStopRecording_onClick(View view) {
-        if (audioRecorder != null) {
-            audioRecorder.stopRecording();
-            audioRecorder = null;
-        }
-
-        audioAmplitude.setProgress(0);
-
     }
 
     @Override
