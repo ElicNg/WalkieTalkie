@@ -39,6 +39,8 @@ public class WalkieTalkieActivity extends ActionBarActivity implements AudioReco
 
         ListenableArrayList<Client> clientArrayList = new ListenableArrayList();
         clients = clientArrayList;
+
+        // Update the status text on client changes.
         final TextView txtStatus = (TextView) findViewById(R.id.txtStatus);
         clientArrayList.setChangeListener(new ListenableArrayList.ChangeListener() {
             @Override
@@ -70,9 +72,18 @@ public class WalkieTalkieActivity extends ActionBarActivity implements AudioReco
         nsdHelper.initDiscovery(new NsdHelper.ServerFoundListener() {
             @Override
             public void onServerFound(String ipAddress, int port) {
-                Client client = new Client();
-                client.listen(ipAddress, port);
-                clients.add(client);
+                boolean isNewClient = true;
+                for (Client client : clients) {
+                    if (client.getAddress().equals(ipAddress)) {
+                        isNewClient = false;
+                        break;
+                    }
+                }
+                if (isNewClient) {
+                    Client client = new Client();
+                    client.listen(ipAddress, port);
+                    clients.add(client);
+                }
             }
         });
 
