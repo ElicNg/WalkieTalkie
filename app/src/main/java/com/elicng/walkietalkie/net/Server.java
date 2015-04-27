@@ -7,16 +7,16 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
- * Created by Elic on 15-04-26.
+ * Create a ServerSocket to listen to connecting clients.
+ * Transfers Audio bytes to clients.
  */
 public class Server {
 
+    private boolean running = true;
     private ServerSocket serverSocket;
     private Thread serverThread;
-    private boolean running = true;
     private Collection<Socket> connectedClients = new ArrayList<>();
 
     public int getPort() {
@@ -35,16 +35,32 @@ public class Server {
         serverThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (running) {
-                    try {
-                        Socket clientSocket = serverSocket.accept();
-                        connectedClients.add(clientSocket);
-                        Log.d("com.elicng.walkietalkie", "Client connected : " + clientSocket.getInetAddress().getHostAddress());
+            while (running) {
+                try {
+                    // 1. Accept new client connection.
+                    Socket newClientSocket = serverSocket.accept();
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    // 2. Check if it is a new client.
+                    String newClientSocketAddress = newClientSocket.getInetAddress().getHostAddress();
+                    boolean isNewClient = true;
+                    for (Socket connectedClientSocket : connectedClients) {
+                        if (connectedClientSocket.getInetAddress().getHostAddress().equals(newClientSocketAddress)) {
+                            // Not a new client. Continue.
+                            isNewClient = false;
+                            break;
+                        }
                     }
+
+                    // 3. Add the client to our list if new client.
+                    if (isNewClient) {
+                        connectedClients.add(newClientSocket);
+                        Log.d("com.elicng.walkietalkie", "Client connected : " + newClientSocket.getInetAddress().getHostAddress());
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+            }
             }
         });
 
@@ -54,7 +70,12 @@ public class Server {
     public void writeByte(byte[] bytes) {
         for (Socket clientSocket : connectedClients) {
             try {
-                clientSocket.getOutputStream().write(bytes);
+                if (clientSocket.isConnected()) {
+                    clientSocket.getOutputStream().write(bytes);
+                } else {
+                    connectedClients.remove(clientSocket);
+                }
+
             } catch (IOException e) {
                 e.printStackTrace();
             }

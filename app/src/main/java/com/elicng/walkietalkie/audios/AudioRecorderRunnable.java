@@ -20,19 +20,10 @@ public class AudioRecorderRunnable implements Runnable {
     public AudioRecorderRunnable(AudioRecorderHandler handler) {
         this.handler = handler;
         audioBuffer = new byte[Properties.BUFFER_SIZE];
-
     }
 
     @Override
     public void run() {
-/*        AudioTrack audioTrack =
-                new AudioTrack(
-                        AudioManager.STREAM_MUSIC,
-                        Properties.SAMPLING_RATE,
-                        AudioFormat.CHANNEL_OUT_MONO,
-                        AudioFormat.ENCODING_PCM_16BIT,
-                        Properties.BUFFER_SIZE,
-                        AudioTrack.MODE_STREAM);*/
 
         audioRecord =
                 new AudioRecord(
@@ -43,10 +34,8 @@ public class AudioRecorderRunnable implements Runnable {
                         Properties.BUFFER_SIZE
                 );
 
-
         audioRecord.startRecording();
 
-        // audioTrack.play();
         int audioRead;
 
         while (isRecording) {
@@ -61,7 +50,6 @@ public class AudioRecorderRunnable implements Runnable {
                 continue;
             }
 
-            //audioTrack.write(audioBuffer, 0, audioBuffer.length);
             if (handler != null) {
                 handler.onRecording(audioBuffer);
             }
@@ -80,5 +68,9 @@ public class AudioRecorderRunnable implements Runnable {
 
     private void log(String message) {
         Log.d("com.elicng.walkietalkie", message);
+    }
+
+    public interface AudioRecorderHandler {
+        void onRecording(byte[] buffer);
     }
 }

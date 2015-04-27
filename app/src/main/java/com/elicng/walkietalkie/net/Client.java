@@ -7,24 +7,26 @@ import android.util.Log;
 
 import com.elicng.walkietalkie.Properties;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 
 /**
- * Created by Elic on 15-04-26.
+ * Connect to server through a socket. Play audio to speakers.
  */
 public class Client {
 
     private boolean listening = true;
+    private String hostName;
+    private int portNumber;
+
     public Client() {
 
     }
 
-    public void Listen(final String hostName, final int portNumber) {
+    public void listen(final String hostName, final int portNumber) {
+        this.hostName = hostName;
+        this.portNumber = portNumber;
         Thread listeningThread = new Thread(new Runnable(){
             @Override
             public void run() {
@@ -32,7 +34,6 @@ public class Client {
                     Socket socket = new Socket(hostName, portNumber);
                     Log.d("com.elicng.walkietalkie", "Listening to server : " + hostName);
                     InputStream inputStream = socket.getInputStream();
-                    OutputStream outputStream = socket.getOutputStream();
 
                     AudioTrack audioTrack =
                             new AudioTrack(
@@ -46,9 +47,15 @@ public class Client {
                     audioTrack.play();
                     byte[] audioBuffer = new byte[Properties.BUFFER_SIZE];
                     int read;
+
                     while (listening) {
                         read = inputStream.read(audioBuffer);
-                        audioTrack.write(audioBuffer, 0, audioBuffer.length);
+                        if (read != -1) {
+                            // Write audio buffer to the AudioTrack.
+                            audioTrack.write(audioBuffer, 0, audioBuffer.length);
+                        } else {
+                            listening = false;
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -61,5 +68,13 @@ public class Client {
 
     public void StopListening() {
         listening = false;
+    }
+
+    public int getPort() {
+        return portNumber;
+    }
+
+    public String getAddress() {
+        return hostName;
     }
 }
