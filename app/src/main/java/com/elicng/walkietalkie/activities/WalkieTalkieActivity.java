@@ -44,7 +44,7 @@ public class WalkieTalkieActivity extends ActionBarActivity implements AudioReco
             @Override
             public void onServerFound(String ipAddress, int port) {
                 Client client = new Client();
-                client.Listen(ipAddress, port);
+                client.listen(ipAddress, port);
                 clients.add(client);
             }
         });

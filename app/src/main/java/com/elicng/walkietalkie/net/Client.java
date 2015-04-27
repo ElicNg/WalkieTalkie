@@ -22,7 +22,7 @@ public class Client {
 
     }
 
-    public void Listen(final String hostName, final int portNumber) {
+    public void listen(final String hostName, final int portNumber) {
         Thread listeningThread = new Thread(new Runnable(){
             @Override
             public void run() {
