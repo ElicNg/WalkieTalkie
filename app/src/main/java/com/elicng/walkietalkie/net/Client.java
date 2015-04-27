@@ -7,19 +7,17 @@ import android.util.Log;
 
 import com.elicng.walkietalkie.Properties;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 
 /**
- * Created by Elic on 15-04-26.
+ * Connect to server through a socket. Play audio to speakers.
  */
 public class Client {
 
     private boolean listening = true;
+
     public Client() {
 
     }
@@ -32,7 +30,6 @@ public class Client {
                     Socket socket = new Socket(hostName, portNumber);
                     Log.d("com.elicng.walkietalkie", "Listening to server : " + hostName);
                     InputStream inputStream = socket.getInputStream();
-                    OutputStream outputStream = socket.getOutputStream();
 
                     AudioTrack audioTrack =
                             new AudioTrack(
@@ -46,8 +43,11 @@ public class Client {
                     audioTrack.play();
                     byte[] audioBuffer = new byte[Properties.BUFFER_SIZE];
                     int read;
+
                     while (listening) {
                         read = inputStream.read(audioBuffer);
+
+                        // Write audio buffer to the AudioTrack.
                         audioTrack.write(audioBuffer, 0, audioBuffer.length);
                     }
                 } catch (IOException e) {

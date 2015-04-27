@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.ProgressBar;
 
 import com.elicng.walkietalkie.R;
-import com.elicng.walkietalkie.audios.AudioRecorderHandler;
 import com.elicng.walkietalkie.audios.AudioRecorderRunnable;
 import com.elicng.walkietalkie.net.Client;
 import com.elicng.walkietalkie.net.NsdHelper;
@@ -23,35 +22,23 @@ import java.util.Collection;
  * ProgressBar details: http://developer.samsung.com/technical-doc/view.do?v=T000000086
  */
 
-public class AudioRecorderBufferActivity extends ActionBarActivity {
+public class WalkieTalkieActivity extends ActionBarActivity implements AudioRecorderRunnable.AudioRecorderHandler {
 
     private AudioRecorderRunnable audioRecorder;
     private Collection<Client> clients = new ArrayList<>();
+    private ProgressBar audioAmplitude;
     private Server server;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_recorder_buffer);
+        audioAmplitude = (ProgressBar) findViewById(R.id.progressBar);
 
+        // Create a server instance to listen to connecting clients
         server = new Server();
         server.start();
-        /*server.start(new Server.ClientConnectListener() {
-            @Override
-            public void onConnect(InputStream stream) {
-                AudioTrack audioTrack =
-                        new AudioTrack(
-                                AudioManager.STREAM_MUSIC,
-                                Properties.SAMPLING_RATE,
-                                AudioFormat.CHANNEL_OUT_MONO,
-                                AudioFormat.ENCODING_PCM_16BIT,
-                                Properties.BUFFER_SIZE,
-                                AudioTrack.MODE_STREAM);
 
-                audioTrack.play();
-                audioTrack.write(stream);
-            }
-        });*/
         NsdHelper nsdHelper = new NsdHelper((NsdManager) getSystemService(NSD_SERVICE));
         nsdHelper.initDiscovery(new NsdHelper.ServerFoundListener() {
             @Override
@@ -88,22 +75,9 @@ public class AudioRecorderBufferActivity extends ActionBarActivity {
 
 
     public void btnStartRecording_onClick(View view) {
-        final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
         if (audioRecorder == null) {
-            audioRecorder = new AudioRecorderRunnable(new AudioRecorderHandler() {
-                @Override
-                public void onRecording(byte[] buffer) {
-                    int sum = 0;
-                    for (int i = 0; i < buffer.length; i++) {
-                        sum += buffer[i] * buffer[i];
-                    }
-                    final int amplitude = (int) Math.sqrt(sum / buffer.length);
-                    progressBar.setProgress(amplitude);
-                    log("Amplitude: " + amplitude);
-                    server.writeByte(buffer);
-                }
-            });
+            audioRecorder = new AudioRecorderRunnable(this);
             new Thread(audioRecorder).start();
         }
 
@@ -113,8 +87,25 @@ public class AudioRecorderBufferActivity extends ActionBarActivity {
         if (audioRecorder != null) {
             audioRecorder.stopRecording();
             audioRecorder = null;
-
         }
+
+        audioAmplitude.setProgress(0);
+
+    }
+
+    @Override
+    public void onRecording(byte[] buffer) {
+        server.writeByte(buffer);
+
+        // Find the recording amplitude ( on 100 )
+        int sum = 0;
+        for (int i = 0; i < buffer.length; i++) {
+            sum += buffer[i] * buffer[i];
+        }
+        final int amplitude = (int) Math.sqrt(sum / buffer.length);
+
+        // set the visual
+        audioAmplitude.setProgress(amplitude);
 
     }
 

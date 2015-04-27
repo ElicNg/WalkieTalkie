@@ -4,15 +4,13 @@ import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
 
-import java.net.InetAddress;
-
 /**
  * Created by Elic on 15-04-25.
  */
 public class NsdHelper {
 
     private NsdManager nsdManager;
-    private final String serviceType = "_http._tcp.";
+    private final String SERVICE_TYPE = "_http._tcp.";
     private ServerFoundListener serverFoundListener;
 
     public NsdHelper(NsdManager nsdManager) {
@@ -25,14 +23,14 @@ public class NsdHelper {
         NsdServiceInfo nsdServiceInfo = new NsdServiceInfo();
         nsdServiceInfo.setServiceName(SERVICE_NAME);
         nsdServiceInfo.setPort(port);
-        nsdServiceInfo.setServiceType(serviceType);
+        nsdServiceInfo.setServiceType(SERVICE_TYPE);
 
         nsdManager.registerService(nsdServiceInfo, NsdManager.PROTOCOL_DNS_SD, new RegistrationListener());
     }
 
     public void initDiscovery(ServerFoundListener serverFoundListener) {
         this.serverFoundListener = serverFoundListener;
-        nsdManager.discoverServices(serviceType, NsdManager.PROTOCOL_DNS_SD, new DiscoveryListener());
+        nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, new DiscoveryListener());
     }
 
     private void log(String message) {
@@ -85,7 +83,12 @@ public class NsdHelper {
         @Override
         public void onServiceFound(NsdServiceInfo serviceInfo) {
             log("onServiceFound");
-            if (serviceInfo.getServiceName() !=  SERVICE_NAME) {
+            if (!serviceInfo.getServiceType().equals(SERVICE_TYPE)) {
+                log("Unknown service type");
+            } else if (serviceInfo.getServiceName().equals(SERVICE_NAME)) {
+                log("Discovered ourself! Skip.");
+            } else if (serviceInfo.getServiceName().contains(SERVICE_NAME)) {
+                // Found a service! Try to resolve the ip and port!
                 nsdManager.resolveService(serviceInfo, new ResolveListener());
             }
         }
