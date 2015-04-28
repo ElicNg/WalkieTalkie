@@ -1,20 +1,34 @@
 package com.elicng.walkietalkie.activities;
 
+import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
+import android.net.wifi.p2p.nsd.WifiP2pServiceInfo;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.elicng.walkietalkie.R;
+import com.elicng.walkietalkie.net.NsdWifiDirectManager;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class WifiDirectActivity extends ActionBarActivity {
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wifi_direct);
-    }
+        NsdWifiDirectManager nsdWifiDirectManager = new NsdWifiDirectManager();
 
+        WifiP2pManager wifiP2pManager = (WifiP2pManager) getSystemService(WIFI_P2P_SERVICE);
+        nsdWifiDirectManager.initialize(wifiP2pManager, getApplicationContext(), getMainLooper());
+        nsdWifiDirectManager.advertiseService(wifiP2pManager);
+        nsdWifiDirectManager.discover(wifiP2pManager);
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
