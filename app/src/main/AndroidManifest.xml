@@ -22,16 +22,16 @@
         <activity
             android:name=".activities.WalkieTalkieActivity"
             android:label="@string/title_activity_audio_recorder_buffer" >
+
+        </activity>
+        <activity
+            android:name=".activities.WifiDirectActivity"
+            android:label="@string/title_activity_wifi_direct" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity
-            android:name=".activities.WifiDirectActivity"
-            android:label="@string/title_activity_wifi_direct" >
-
         </activity>
     </application>
 

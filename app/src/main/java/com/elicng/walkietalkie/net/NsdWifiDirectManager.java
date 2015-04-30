@@ -89,4 +89,6 @@ public class NsdWifiDirectManager {
     private void log(String message) {
         Log.d("com.elicng.wifidirect", message);
     }
+
+    public interface
 }
