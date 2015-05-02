@@ -103,19 +103,21 @@ public class NsdWifiDirectManager {
         });
     }
 
-    public void connect(WifiP2pDevice device) {
+    public void connect(String deviceAddress, final ConnectionListener listener) {
         final WifiP2pConfig config = new WifiP2pConfig();
-        config.deviceAddress = device.deviceAddress;
+        config.deviceAddress = deviceAddress;
 
         wifiP2pManager.connect(channel, config, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
                 log("OnConnect Success " + config.deviceAddress);
+                listener.onConnect(config.deviceAddress);
             }
 
             @Override
             public void onFailure(int reason) {
                 log("OnConnect Failure reason:" + reason + " address:" + config.deviceAddress);
+                listener.onFailure();
             }
         });
     }
@@ -125,7 +127,7 @@ public class NsdWifiDirectManager {
     }
 
     public interface ConnectionListener {
-        void onConnect();
+        void onConnect(String deviceAddress);
         void onFailure();
     }
 

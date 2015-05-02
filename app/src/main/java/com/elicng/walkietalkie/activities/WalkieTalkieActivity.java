@@ -44,7 +44,7 @@ public class WalkieTalkieActivity extends ActionBarActivity implements AudioReco
         final ArrayAdapter<Client> connectedClientModelArrayAdapter =
                 new ArrayAdapter(getApplicationContext(), R.layout.connectedclientsadapter);
 
-        ListView connectedClientsListView = (ListView) findViewById(R.id.connectedClients);
+        ListView connectedClientsListView = null; // Dead code, keeping for reference
         connectedClientsListView.setAdapter(connectedClientModelArrayAdapter);
 
         // Create a server instance to listen to connecting clients

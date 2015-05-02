@@ -13,4 +13,6 @@ public class Properties {
             AudioRecord.getMinBufferSize(Properties.SAMPLING_RATE,
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT);
+
+    public final static int SERVER_PORT = 9999;
 }
