@@ -2,6 +2,8 @@ package com.elicng.walkietalkie.net;
 
 import android.util.Log;
 
+import com.elicng.walkietalkie.Properties;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -25,7 +27,7 @@ public class Server {
 
     public Server() {
         try {
-            serverSocket = new ServerSocket(0);
+            serverSocket = new ServerSocket(Properties.SERVER_PORT);
         } catch (IOException e) {
             e.printStackTrace();
         }

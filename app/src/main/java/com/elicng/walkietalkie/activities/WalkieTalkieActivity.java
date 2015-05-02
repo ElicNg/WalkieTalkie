@@ -8,6 +8,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -18,7 +20,7 @@ import com.elicng.walkietalkie.net.NsdHelper;
 import com.elicng.walkietalkie.net.Server;
 import com.elicng.walkietalkie.utils.ListenableArrayList;
 
-import java.util.Collection;
+import java.util.ArrayList;
 
 /**
  * ProgressBar details: http://developer.samsung.com/technical-doc/view.do?v=T000000086
@@ -27,7 +29,7 @@ import java.util.Collection;
 public class WalkieTalkieActivity extends ActionBarActivity implements AudioRecorderRunnable.AudioRecorderHandler {
 
     private AudioRecorderRunnable audioRecorder;
-    private Collection<Client> clients;
+    private ArrayList<Client> clients;
     private ProgressBar audioAmplitude;
     private Server server;
 
@@ -37,27 +39,13 @@ public class WalkieTalkieActivity extends ActionBarActivity implements AudioReco
         setContentView(R.layout.activity_audio_recorder_buffer);
         audioAmplitude = (ProgressBar) findViewById(R.id.progressBar);
 
-        ListenableArrayList<Client> clientArrayList = new ListenableArrayList();
-        clients = clientArrayList;
-        final TextView txtStatus = (TextView) findViewById(R.id.txtStatus);
-        clientArrayList.setChangeListener(new ListenableArrayList.ChangeListener() {
-            @Override
-            public void onChange() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+        clients = new ArrayList();
 
-                        String connectedDevices = "Number of connected clients : " + clients.size();
-                        for (Client c : clients) {
-                            connectedDevices += "\n" + c.getAddress() + ":" + c.getPort();
-                        }
+        final ArrayAdapter<Client> connectedClientModelArrayAdapter =
+                new ArrayAdapter(getApplicationContext(), R.layout.connectedclientsadapter);
 
-                        txtStatus.setText(connectedDevices);
-                    }
-                });
-
-            }
-        });
+        ListView connectedClientsListView = null; // Dead code, keeping for reference
+        connectedClientsListView.setAdapter(connectedClientModelArrayAdapter);
 
         // Create a server instance to listen to connecting clients
         server = new Server();
@@ -70,9 +58,19 @@ public class WalkieTalkieActivity extends ActionBarActivity implements AudioReco
         nsdHelper.initDiscovery(new NsdHelper.ServerFoundListener() {
             @Override
             public void onServerFound(String ipAddress, int port) {
-                Client client = new Client();
-                client.listen(ipAddress, port);
-                clients.add(client);
+                boolean isNewClient = true;
+                for (Client client : clients) {
+                    if (client.getAddress().equals(ipAddress)) {
+                        isNewClient = false;
+                        break;
+                    }
+                }
+                if (isNewClient) {
+                    Client client = new Client();
+                    client.listen(ipAddress, port);
+                    clients.add(client);
+                    connectedClientModelArrayAdapter.notifyDataSetChanged();
+                }
             }
         });
 
