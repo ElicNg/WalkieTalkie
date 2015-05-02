@@ -1,6 +1,7 @@
 package com.elicng.walkietalkie.net;
 
 import android.content.Context;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
@@ -17,14 +18,27 @@ import java.util.Map;
 public class NsdWifiDirectManager {
 
     private WifiP2pManager.Channel channel;
+    private WifiP2pManager wifiP2pManager;
+    private boolean initialized;
 
     public void initialize(WifiP2pManager wifiP2pManager, Context srcContext, Looper srcLooper) {
-        channel = wifiP2pManager.initialize(srcContext, srcLooper, new WifiP2pManager.ChannelListener() {
-            @Override
-            public void onChannelDisconnected() {
-                log("onChannelDisconnected");
-            }
-        });
+        if (!initialized) {
+            this.wifiP2pManager = wifiP2pManager;
+
+            channel = wifiP2pManager.initialize(srcContext, srcLooper, new WifiP2pManager.ChannelListener() {
+                @Override
+                public void onChannelDisconnected() {
+                    log("onChannelDisconnected");
+                    wifiP2pManager = null;
+                    channel = null;
+                    initialized = false;
+                }
+            });
+            initialized = true;
+        } else {
+            log("ERROR: NsgWifiDirectManager: Already initialized.");
+        }
+
     }
 
     public void advertiseService(WifiP2pManager wifiP2pManager) {
@@ -47,11 +61,12 @@ public class NsdWifiDirectManager {
         });
     }
 
-    public void discover(WifiP2pManager wifiP2pManager) {
+    public void discover() {
         wifiP2pManager.setDnsSdResponseListeners(channel, new WifiP2pManager.DnsSdServiceResponseListener() {
             @Override
             public void onDnsSdServiceAvailable(String instanceName, String registrationType, WifiP2pDevice srcDevice) {
                 log("onDnsSdServiceAvailable ~ " + instanceName + " ~ " + registrationType + " ~ " + srcDevice.deviceAddress);
+
             }
         }, new WifiP2pManager.DnsSdTxtRecordListener() {
             @Override
@@ -86,9 +101,25 @@ public class NsdWifiDirectManager {
         });
     }
 
+    public void connect(WifiP2pDevice device) {
+        final WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = device.deviceAddress;
+
+        wifiP2pManager.connect(channel, config, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                log("OnConnect Success " + config.deviceAddress);
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                log("OnConnect Failure reason:" + reason + " address:" + config.deviceAddress);
+            }
+        });
+    }
+
     private void log(String message) {
         Log.d("com.elicng.wifidirect", message);
     }
 
-    public interface
 }
