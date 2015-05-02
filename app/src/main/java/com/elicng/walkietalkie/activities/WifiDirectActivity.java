@@ -17,7 +17,6 @@ import java.util.Map;
 
 public class WifiDirectActivity extends ActionBarActivity {
 
-
     private NsdWifiDirectManager nsdWifiDirectManager;
     private WifiP2pManager wifiP2pManager;
 
@@ -32,7 +31,7 @@ public class WifiDirectActivity extends ActionBarActivity {
     }
 
     public void btnStartDiscovery_onClick(View view) {
-        nsdWifiDirectManager.discover(wifiP2pManager);
+        nsdWifiDirectManager.discover();
     }
 
     public void btnStartAdvertise_onClick(View view) {

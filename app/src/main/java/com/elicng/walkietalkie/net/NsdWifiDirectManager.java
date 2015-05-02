@@ -1,6 +1,7 @@
 package com.elicng.walkietalkie.net;
 
 import android.content.Context;
+import android.net.nsd.NsdManager;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -29,7 +30,7 @@ public class NsdWifiDirectManager {
                 @Override
                 public void onChannelDisconnected() {
                     log("onChannelDisconnected");
-                    wifiP2pManager = null;
+                    //wifiP2pManager = null;
                     channel = null;
                     initialized = false;
                 }
@@ -61,11 +62,12 @@ public class NsdWifiDirectManager {
         });
     }
 
-    public void discover() {
+    public void discover(final DiscoveryListener listener) {
         wifiP2pManager.setDnsSdResponseListeners(channel, new WifiP2pManager.DnsSdServiceResponseListener() {
             @Override
             public void onDnsSdServiceAvailable(String instanceName, String registrationType, WifiP2pDevice srcDevice) {
                 log("onDnsSdServiceAvailable ~ " + instanceName + " ~ " + registrationType + " ~ " + srcDevice.deviceAddress);
+                listener.onDiscovery(instanceName, registrationType, srcDevice);
 
             }
         }, new WifiP2pManager.DnsSdTxtRecordListener() {
@@ -122,4 +124,13 @@ public class NsdWifiDirectManager {
         Log.d("com.elicng.wifidirect", message);
     }
 
+    public interface ConnectionListener {
+        void onConnect();
+        void onFailure();
+    }
+
+    public interface DiscoveryListener {
+        void onDiscovery(String instanceName, String registrationType, WifiP2pDevice srcDevice);
+        void onFailure();
+    }
 }
